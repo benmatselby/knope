@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/benmatselby/knope/branch/master/graph/badge.svg)](https://codecov.io/gh/benmatselby/knope)
 [![Go Report Card](https://goreportcard.com/badge/github.com/benmatselby/knope)](https://goreportcard.com/report/github.com/benmatselby/knope)
 
-_That rug really tied the room together, did it not?_
+_I am super chill all the time!_
 
 CLI application for getting build information out of AWS CodeBuild.
 
