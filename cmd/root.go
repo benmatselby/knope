@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/benmatselby/knope/client"
 	"github.com/benmatselby/knope/version"
 
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/codebuild"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,7 +15,7 @@ import (
 var cfgFile string
 
 // NewRootCommand will return the application
-func NewRootCommand() *cobra.Command {
+func NewRootCommand(client client.API) *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "knope",
 		Short:   "CLI tool for retrieving data from AWS CodeBuild",
@@ -29,21 +27,9 @@ func NewRootCommand() *cobra.Command {
 	// will be global for your application.
 	cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.benmatselby/knope.yaml)")
 
-	sess, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 viper.GetString("AWS_PROFILE"),
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-	})
-	if err != nil {
-		os.Exit(2)
-	}
-
-	// Create CodeBuild service client
-	svc := codebuild.New(sess)
-
 	cmd.AddCommand(
-		NewListProjectsCommand(svc),
-		NewListBuildsForProjectCommand(svc),
+		NewListProjectsCommand(client),
+		NewListBuildsForProjectCommand(client),
 	)
 
 	return cmd
@@ -54,7 +40,9 @@ func NewRootCommand() *cobra.Command {
 func Execute() {
 	initConfig()
 
-	cmd := NewRootCommand()
+	client := client.NewClient()
+
+	cmd := NewRootCommand(&client)
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)

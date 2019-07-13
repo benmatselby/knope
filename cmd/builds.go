@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/benmatselby/knope/client"
 	"github.com/benmatselby/knope/ui"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +20,7 @@ type ListBuildForProjectOptions struct {
 }
 
 // NewListBuildsForProjectCommand creates a new `builds` command
-func NewListBuildsForProjectCommand(svc *codebuild.CodeBuild) *cobra.Command {
+func NewListBuildsForProjectCommand(client client.API) *cobra.Command {
 	var opts ListBuildForProjectOptions
 
 	cmd := &cobra.Command{
@@ -27,7 +28,7 @@ func NewListBuildsForProjectCommand(svc *codebuild.CodeBuild) *cobra.Command {
 		Short: "List all the builds for a given project",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Args = args
-			return DisplayBuildsForProject(svc, opts, os.Stdout)
+			return DisplayBuildsForProject(client, opts, os.Stdout)
 		},
 	}
 
@@ -37,19 +38,19 @@ func NewListBuildsForProjectCommand(svc *codebuild.CodeBuild) *cobra.Command {
 }
 
 // DisplayBuildsForProject will render the projects you have access to
-func DisplayBuildsForProject(svc *codebuild.CodeBuild, opts ListBuildForProjectOptions, w io.Writer) error {
+func DisplayBuildsForProject(client client.API, opts ListBuildForProjectOptions, w io.Writer) error {
 	if opts.Project == "" {
 		return fmt.Errorf("please specify a project name")
 	}
 
-	projectBuilds, err := svc.ListBuildsForProject(&codebuild.ListBuildsForProjectInput{
+	projectBuilds, err := client.ListBuildsForProject(&codebuild.ListBuildsForProjectInput{
 		ProjectName: &opts.Project,
 	})
 	if err != nil {
 		return err
 	}
 
-	builds, err := svc.BatchGetBuilds(&codebuild.BatchGetBuildsInput{Ids: projectBuilds.Ids})
+	builds, err := client.BatchGetBuilds(&codebuild.BatchGetBuildsInput{Ids: projectBuilds.Ids})
 	if err != nil {
 		return err
 	}
