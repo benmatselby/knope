@@ -49,3 +49,13 @@ make all
 ```
 
 You can also install into your `$GOPATH/bin` by running `make build && go install`.
+
+## Testing
+
+To generate the code used to mock away the CodeBuild interaction, run the following command.
+
+```shell
+mockgen -source client/client.go
+```
+
+This will generate you some source code you can copy into `client/mock_client.go`. You will need to change the package to `client`.
