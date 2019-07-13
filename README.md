@@ -36,6 +36,7 @@ You will need the following environment variables defining:
 
 ```shell
 export AWS_DEFAULT_REGION=""
+export AWS_PROFILE=""
 ```
 
 ## Installation via Git
