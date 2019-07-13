@@ -42,6 +42,7 @@ func NewRootCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		NewListProjectsCommand(svc),
+		NewListBuildsForProjectCommand(svc),
 	)
 
 	return cmd
