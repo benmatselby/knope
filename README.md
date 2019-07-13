@@ -1,6 +1,6 @@
 # Knope
 
-[![Build Status](https://travis-ci.org/benmatselby/knope.png?branch=master)](https://travis-ci.org/benmatselby/knope)
+[![Build Status](https://travis-ci.com/benmatselby/knope.svg?branch=master)](https://travis-ci.com/benmatselby/knope)
 [![codecov](https://codecov.io/gh/benmatselby/knope/branch/master/graph/badge.svg)](https://codecov.io/gh/benmatselby/knope)
 [![Go Report Card](https://goreportcard.com/badge/github.com/benmatselby/knope)](https://goreportcard.com/report/github.com/benmatselby/knope)
 
