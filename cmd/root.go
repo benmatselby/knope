@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/benmatselby/knope/version"
+
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/codebuild"
-	"github.com/benmatselby/frost/version"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
