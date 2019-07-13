@@ -19,7 +19,7 @@ var cfgFile string
 func NewRootCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "knope",
-		Short:   "Get information out of AWS CodeBuild",
+		Short:   "CLI tool for retrieving data from AWS CodeBuild",
 		Version: version.GITCOMMIT,
 	}
 

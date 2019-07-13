@@ -6,10 +6,22 @@
 
 _I am super chill all the time!_
 
-CLI application for getting build information out of AWS CodeBuild.
-
 ```text
+CLI tool for retrieving data from AWS CodeBuild
 
+Usage:
+  knope [command]
+
+Available Commands:
+  builds      List all the builds for a given project
+  help        Help about any command
+  projects    List all the projects
+
+Flags:
+      --config string   config file (default is $HOME/.benmatselby/knope.yaml)
+  -h, --help            help for knope
+
+Use "knope [command] --help" for more information about a command.
 ```
 
 ## Requirements
@@ -20,21 +32,10 @@ If you are wanting to build and develop this, you will need the following items 
 
 ## Configuration
 
-### Environment variables
-
 You will need the following environment variables defining:
 
 ```shell
 export AWS_DEFAULT_REGION=""
-```
-
-### Application configuration file
-
-Long term this may not be required, but right now we need a configuration file (by default, `~/.benmatselby/knope.yaml`).
-
-An example:
-
-```yml
 ```
 
 ## Installation via Git
