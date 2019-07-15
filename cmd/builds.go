@@ -59,7 +59,12 @@ func DisplayBuildsForProject(client client.API, opts ListBuildForProjectOptions,
 	fmt.Fprintf(tr, "%s\t%s\t%s\t%s\n", "", "Name", "Branch", "Finished")
 	for _, build := range builds.Builds {
 		start := build.StartTime.Format(ui.AppDateTimeFormat)
-		finish := build.EndTime.Format(ui.AppDateTimeFormat)
+
+		finish := ""
+
+		if build.EndTime != nil {
+			finish = build.EndTime.Format(ui.AppDateTimeFormat)
+		}
 
 		result := ""
 		if aws.StringValue(build.BuildStatus) == "FAILED" || aws.StringValue(build.BuildStatus) == "FAULT" {
