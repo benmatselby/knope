@@ -28,8 +28,9 @@ func NewRootCommand(client client.API) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.benmatselby/knope.yaml)")
 
 	cmd.AddCommand(
-		NewListProjectsCommand(client),
 		NewListBuildsForProjectCommand(client),
+		NewListProjectsCommand(client),
+		NewOverviewCommand(client),
 	)
 
 	return cmd

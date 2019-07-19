@@ -17,4 +17,6 @@ const (
 	AppStale string = "🕳"
 	// AppUnknown when the world is just too darn crazy and we have no idea what is happening
 	AppUnknown string = "❓"
+	// AppEmpty is when there is no builds to show
+	AppEmpty string = "📭"
 )
