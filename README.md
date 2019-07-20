@@ -15,6 +15,7 @@ Usage:
 Available Commands:
   builds      List all the builds for a given project
   help        Help about any command
+  overview    Will provide an overview of the last build per project
   projects    List all the projects
 
 Flags:
@@ -26,7 +27,7 @@ Use "knope [command] --help" for more information about a command.
 
 ## Requirements
 
-If you are wanting to build and develop this, you will need the following items installed. If, however, you just want to run the application I recommend using the docker container (See below).
+If you are wanting to build and develop this, you will need the following items installed.
 
 - Go version 1.12+
 
