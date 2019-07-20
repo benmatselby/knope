@@ -42,6 +42,7 @@ func TestDisplayOverview(t *testing.T) {
 		name     string
 		projects []string
 		builds   []testOverviewBuild
+		filter   string
 		expected string
 		err      error
 	}{
@@ -50,6 +51,7 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ✅       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
@@ -58,9 +60,19 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ✅       a    19-07-2019 23:00 19-07-2019 23:10
 ✅       c    19-07-2019 23:00 19-07-2019 23:10
+✅       d    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can ignore projects if filter is defined", projects: []string{"a", "d", "c"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "SUCCEEDED",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			filter: "d",
+			expected: `Status  Name Branch           Finished
 ✅       d    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
 		{name: "can return a failed build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
@@ -68,6 +80,7 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ❌       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
@@ -76,6 +89,7 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ❌       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
@@ -84,6 +98,7 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 🏗       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
@@ -92,6 +107,7 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 🕳       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
@@ -100,6 +116,7 @@ func TestDisplayOverview(t *testing.T) {
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
+			filter: ".*",
 			expected: `Status  Name Branch           Finished
 🕳       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
@@ -156,7 +173,11 @@ func TestDisplayOverview(t *testing.T) {
 			var b bytes.Buffer
 			writer := bufio.NewWriter(&b)
 
-			cmd.DisplayOverview(client, writer)
+			opts := cmd.OverviewOptions{
+				Filter: tc.filter,
+			}
+
+			cmd.DisplayOverview(client, opts, writer)
 			writer.Flush()
 
 			if b.String() != tc.expected {
