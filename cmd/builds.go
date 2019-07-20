@@ -56,7 +56,7 @@ func DisplayBuildsForProject(client client.API, opts ListBuildForProjectOptions,
 	}
 
 	tr := tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.FilterHTML)
-	fmt.Fprintf(tr, "%s\t%s\t%s\t%s\n", "", "Name", "Branch", "Finished")
+	fmt.Fprintf(tr, "%s \t%s\t%s\t%s\n", "Status", "Name", "Branch", "Finished")
 	for _, build := range builds.Builds {
 		start := build.StartTime.Format(ui.AppDateTimeFormat)
 

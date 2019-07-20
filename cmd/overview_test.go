@@ -31,7 +31,7 @@ func TestNewOverviewCommand(t *testing.T) {
 	}
 }
 
-type testBuild struct {
+type testOverviewBuild struct {
 	Status string
 	Start  time.Time
 	Finish time.Time
@@ -41,17 +41,67 @@ func TestDisplayOverview(t *testing.T) {
 	tt := []struct {
 		name     string
 		projects []string
-		builds   []testBuild
+		builds   []testOverviewBuild
 		expected string
 		err      error
 	}{
-		{name: "can return the a build per project", projects: []string{"a"}, builds: []testBuild{testBuild{
+		{name: "can return a build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "SUCCEEDED",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
 			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
 		}},
 			expected: `Status  Name Branch           Finished
 ✅       a    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can order the projects", projects: []string{"a", "d", "c"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "SUCCEEDED",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			expected: `Status  Name Branch           Finished
+✅       a    19-07-2019 23:00 19-07-2019 23:10
+✅       c    19-07-2019 23:00 19-07-2019 23:10
+✅       d    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can return a failed build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "FAILED",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			expected: `Status  Name Branch           Finished
+❌       a    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can return a faulted build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "FAILED",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			expected: `Status  Name Branch           Finished
+❌       a    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can return an in progress build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "IN_PROGRESS",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			expected: `Status  Name Branch           Finished
+🏗       a    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can return a stopped build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "STOPPED",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			expected: `Status  Name Branch           Finished
+🕳       a    19-07-2019 23:00 19-07-2019 23:10
+`, err: nil},
+		{name: "can return a timed out build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
+			Status: "TIMED_OUT",
+			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
+			Finish: time.Date(2019, time.July, 19, 23, 10, 0, 0, time.UTC),
+		}},
+			expected: `Status  Name Branch           Finished
+🕳       a    19-07-2019 23:00 19-07-2019 23:10
 `, err: nil},
 	}
 
