@@ -2,6 +2,10 @@
 
 ## next
 
+## 1.1.0
+
+- Add the ability to filter the output of the `overview` command, by using `--filter`.
+
 ## 1.0.0
 
 - First initial versioned release of `knope`.

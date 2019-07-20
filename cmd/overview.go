@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"sort"
 	"sync"
 	"text/tabwriter"
@@ -16,20 +17,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// OverviewOptions defines what arguments/options the user can provide
+type OverviewOptions struct {
+	Args   []string
+	Filter string
+}
+
 // NewOverviewCommand creates a new `overview` command
 func NewOverviewCommand(client client.API) *cobra.Command {
+	var opts OverviewOptions
+
 	cmd := &cobra.Command{
 		Use:   "overview",
 		Short: "Will provide an overview of the last build per project",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return DisplayOverview(client, os.Stdout)
+			opts.Args = args
+			return DisplayOverview(client, opts, os.Stdout)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&opts.Filter, "filter", ".*", "Regex to filter the projects displayed")
+
 	return cmd
 }
 
 // DisplayOverview will render each project asked for and the last build value
-func DisplayOverview(client client.API, w io.Writer) error {
+func DisplayOverview(client client.API, opts OverviewOptions, w io.Writer) error {
 	projects, err := client.ListProjects(&codebuild.ListProjectsInput{SortOrder: aws.String("ASCENDING")})
 	if err != nil {
 		return err
@@ -47,6 +61,11 @@ func DisplayOverview(client client.API, w io.Writer) error {
 	for _, project := range projects.Projects {
 		go func(project *string) {
 			defer wg.Done()
+
+			matched, err := regexp.MatchString(opts.Filter, *project)
+			if !matched {
+				return
+			}
 
 			projectBuilds, err := client.ListBuildsForProject(&codebuild.ListBuildsForProjectInput{
 				ProjectName: project,
