@@ -1,7 +1,6 @@
 # Knope
 
-[![Build Status](https://travis-ci.com/benmatselby/knope.svg?branch=master)](https://travis-ci.com/benmatselby/knope)
-[![codecov](https://codecov.io/gh/benmatselby/knope/branch/master/graph/badge.svg)](https://codecov.io/gh/benmatselby/knope)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=knope&metric=alert_status)](https://sonarcloud.io/dashboard?id=knope)
 [![Go Report Card](https://goreportcard.com/badge/github.com/benmatselby/knope)](https://goreportcard.com/report/github.com/benmatselby/knope)
 
 _I am super chill all the time!_
