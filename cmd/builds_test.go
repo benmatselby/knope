@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"testing"
 	"time"
 
@@ -40,11 +41,12 @@ type testBuild struct {
 
 func TestDisplayBuildsForProject(t *testing.T) {
 	tt := []struct {
-		name     string
-		project  string
-		builds   []testBuild
-		expected string
-		err      error
+		name         string
+		project      string
+		builds       []testBuild
+		expected     string
+		listBuildErr error
+		getBuildErr  error
 	}{
 		{name: "can return a succeeded build", project: "project-one", builds: []testBuild{testBuild{
 			Status: "SUCCEEDED",
@@ -54,7 +56,7 @@ func TestDisplayBuildsForProject(t *testing.T) {
 		}},
 			expected: `Status  Name      Branch           Finished
 ✅       my-branch 19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a failed build", project: "project-one", builds: []testBuild{testBuild{
 			Status: "FAILED",
 			Source: "my-branch",
@@ -63,7 +65,7 @@ func TestDisplayBuildsForProject(t *testing.T) {
 		}},
 			expected: `Status  Name      Branch           Finished
 ❌       my-branch 19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a fault build", project: "project-one", builds: []testBuild{testBuild{
 			Status: "FAULT",
 			Source: "my-branch",
@@ -72,7 +74,7 @@ func TestDisplayBuildsForProject(t *testing.T) {
 		}},
 			expected: `Status  Name      Branch           Finished
 ❌       my-branch 19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return an in progress build", project: "project-one", builds: []testBuild{testBuild{
 			Status: "IN_PROGRESS",
 			Source: "my-branch",
@@ -81,7 +83,7 @@ func TestDisplayBuildsForProject(t *testing.T) {
 		}},
 			expected: `Status  Name      Branch           Finished
 🏗       my-branch 19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a stopped build build", project: "project-one", builds: []testBuild{testBuild{
 			Status: "STOPPED",
 			Source: "my-branch",
@@ -90,7 +92,7 @@ func TestDisplayBuildsForProject(t *testing.T) {
 		}},
 			expected: `Status  Name      Branch           Finished
 🕳       my-branch 19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a timed out build build", project: "project-one", builds: []testBuild{testBuild{
 			Status: "STOPPED",
 			Source: "my-branch",
@@ -99,7 +101,23 @@ func TestDisplayBuildsForProject(t *testing.T) {
 		}},
 			expected: `Status  Name      Branch           Finished
 🕳       my-branch 19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listBuildErr: nil, getBuildErr: nil},
+		{
+			name:         "unable to list builds for project",
+			project:      "project-one",
+			builds:       nil,
+			expected:     "",
+			listBuildErr: errors.New("there was an error"),
+			getBuildErr:  nil,
+		},
+		{
+			name:         "unable to get builds for project",
+			project:      "project-one",
+			builds:       nil,
+			expected:     "",
+			listBuildErr: nil,
+			getBuildErr:  errors.New("there was an error"),
+		},
 	}
 
 	for _, tc := range tt {
@@ -128,13 +146,13 @@ func TestDisplayBuildsForProject(t *testing.T) {
 			client.
 				EXPECT().
 				ListBuildsForProject(gomock.Any()).
-				Return(&buildProjectOutput, tc.err).
+				Return(&buildProjectOutput, tc.listBuildErr).
 				AnyTimes()
 
 			client.
 				EXPECT().
 				BatchGetBuilds(gomock.Any()).
-				Return(&buildOutput, tc.err).
+				Return(&buildOutput, tc.getBuildErr).
 				AnyTimes()
 
 			var b bytes.Buffer
@@ -144,11 +162,23 @@ func TestDisplayBuildsForProject(t *testing.T) {
 				Project: tc.project,
 			}
 
-			cmd.DisplayBuildsForProject(client, opt, writer)
+			err := cmd.DisplayBuildsForProject(client, opt, writer)
 			writer.Flush()
 
 			if b.String() != tc.expected {
 				t.Fatalf("expected '%s'; got '%s'", tc.expected, b.String())
+			}
+
+			if tc.listBuildErr != nil {
+				if err != tc.listBuildErr {
+					t.Fatalf("expected err to be %v; got %v", tc.listBuildErr, err)
+				}
+			}
+
+			if tc.getBuildErr != nil {
+				if err != tc.getBuildErr {
+					t.Fatalf("expected err to be %v; got %v", tc.getBuildErr, err)
+				}
 			}
 		})
 	}
