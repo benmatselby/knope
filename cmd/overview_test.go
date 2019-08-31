@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"testing"
 	"time"
 
@@ -39,12 +40,14 @@ type testOverviewBuild struct {
 
 func TestDisplayOverview(t *testing.T) {
 	tt := []struct {
-		name     string
-		projects []string
-		builds   []testOverviewBuild
-		filter   string
-		expected string
-		err      error
+		name           string
+		projects       []string
+		builds         []testOverviewBuild
+		filter         string
+		expected       string
+		listProjectErr error
+		listBuildErr   error
+		getBuildErr    error
 	}{
 		{name: "can return a build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "SUCCEEDED",
@@ -54,7 +57,7 @@ func TestDisplayOverview(t *testing.T) {
 			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ✅       a    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can order the projects", projects: []string{"a", "d", "c"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "SUCCEEDED",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -65,7 +68,7 @@ func TestDisplayOverview(t *testing.T) {
 ✅       a    19-07-2019 23:00 19-07-2019 23:10
 ✅       c    19-07-2019 23:00 19-07-2019 23:10
 ✅       d    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can ignore projects if filter is defined", projects: []string{"a", "d", "c"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "SUCCEEDED",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -74,7 +77,7 @@ func TestDisplayOverview(t *testing.T) {
 			filter: "d",
 			expected: `Status  Name Branch           Finished
 ✅       d    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a failed build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "FAILED",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -83,7 +86,7 @@ func TestDisplayOverview(t *testing.T) {
 			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ❌       a    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a faulted build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "FAILED",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -92,7 +95,7 @@ func TestDisplayOverview(t *testing.T) {
 			filter: ".*",
 			expected: `Status  Name Branch           Finished
 ❌       a    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return an in progress build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "IN_PROGRESS",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -101,7 +104,7 @@ func TestDisplayOverview(t *testing.T) {
 			filter: ".*",
 			expected: `Status  Name Branch           Finished
 🏗       a    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a stopped build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "STOPPED",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -110,7 +113,7 @@ func TestDisplayOverview(t *testing.T) {
 			filter: ".*",
 			expected: `Status  Name Branch           Finished
 🕳       a    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
 		{name: "can return a timed out build per project", projects: []string{"a"}, builds: []testOverviewBuild{testOverviewBuild{
 			Status: "TIMED_OUT",
 			Start:  time.Date(2019, time.July, 19, 23, 0, 0, 0, time.UTC),
@@ -119,7 +122,41 @@ func TestDisplayOverview(t *testing.T) {
 			filter: ".*",
 			expected: `Status  Name Branch           Finished
 🕳       a    19-07-2019 23:00 19-07-2019 23:10
-`, err: nil},
+`, listProjectErr: nil, listBuildErr: nil, getBuildErr: nil},
+		{
+			name:           "unable to list projects",
+			projects:       nil,
+			builds:         nil,
+			filter:         ".*",
+			expected:       "",
+			listProjectErr: errors.New("unable to list projects"),
+			listBuildErr:   nil,
+			getBuildErr:    nil,
+		},
+		{
+			name:     "unable to list builds for projects",
+			projects: []string{"a"},
+			builds:   nil,
+			filter:   ".*",
+			expected: `Status  Name Branch Finished
+❓       a    -      -
+`,
+			listProjectErr: nil,
+			listBuildErr:   errors.New("unable to list builds for project"),
+			getBuildErr:    nil,
+		},
+		{
+			name:     "unable to get builds",
+			projects: []string{"a"},
+			builds:   nil,
+			filter:   ".*",
+			expected: `Status  Name Branch Finished
+❓       a    -      -
+`,
+			listProjectErr: nil,
+			listBuildErr:   nil,
+			getBuildErr:    errors.New("unable to get batch builds"),
+		},
 	}
 
 	for _, tc := range tt {
@@ -155,19 +192,19 @@ func TestDisplayOverview(t *testing.T) {
 			client.
 				EXPECT().
 				ListProjects(gomock.Any()).
-				Return(&projectOutput, tc.err).
+				Return(&projectOutput, tc.listProjectErr).
 				AnyTimes()
 
 			client.
 				EXPECT().
 				ListBuildsForProject(gomock.Any()).
-				Return(&buildProjectOutput, tc.err).
+				Return(&buildProjectOutput, tc.listBuildErr).
 				AnyTimes()
 
 			client.
 				EXPECT().
 				BatchGetBuilds(gomock.Any()).
-				Return(&buildOutput, tc.err).
+				Return(&buildOutput, tc.getBuildErr).
 				AnyTimes()
 
 			var b bytes.Buffer
@@ -177,11 +214,17 @@ func TestDisplayOverview(t *testing.T) {
 				Filter: tc.filter,
 			}
 
-			cmd.DisplayOverview(client, opts, writer)
+			err := cmd.DisplayOverview(client, opts, writer)
 			writer.Flush()
 
 			if b.String() != tc.expected {
 				t.Fatalf("expected '%s'; got '%s'", tc.expected, b.String())
+			}
+
+			if tc.listProjectErr != nil {
+				if err != tc.listProjectErr {
+					t.Fatalf("expected err to be %v; got %v", tc.listProjectErr, err)
+				}
 			}
 		})
 	}
