@@ -79,7 +79,7 @@ func DisplayOverview(client client.API, opts OverviewOptions, w io.Writer) error
 				ProjectName: project,
 			})
 			if err != nil {
-				records <- BuildRecord{Project: *project, Status: ui.AppUnknown, Start: "", Finish: ""}
+				records <- BuildRecord{Project: *project, Status: ui.AppUnknown, Start: "-", Finish: "-"}
 				return
 			}
 
@@ -90,7 +90,7 @@ func DisplayOverview(client client.API, opts OverviewOptions, w io.Writer) error
 
 			builds, err := client.BatchGetBuilds(&codebuild.BatchGetBuildsInput{Ids: projectBuilds.Ids})
 			if err != nil {
-				records <- BuildRecord{Project: *project, Status: ui.AppUnknown, Start: "", Finish: ""}
+				records <- BuildRecord{Project: *project, Status: ui.AppUnknown, Start: "-", Finish: "-"}
 				return
 			}
 
