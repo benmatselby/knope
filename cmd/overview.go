@@ -23,6 +23,14 @@ type OverviewOptions struct {
 	Filter string
 }
 
+// BuildRecord gives us a struct to store records
+type BuildRecord struct {
+	Project string
+	Status  string
+	Start   string
+	Finish  string
+}
+
 // NewOverviewCommand creates a new `overview` command
 func NewOverviewCommand(client client.API) *cobra.Command {
 	var opts OverviewOptions
@@ -71,33 +79,18 @@ func DisplayOverview(client client.API, opts OverviewOptions, w io.Writer) error
 				ProjectName: project,
 			})
 			if err != nil {
-				records <- BuildRecord{
-					Project: *project,
-					Status:  ui.AppUnknown,
-					Start:   "",
-					Finish:  "",
-				}
+				records <- BuildRecord{Project: *project, Status: ui.AppUnknown, Start: "", Finish: ""}
 				return
 			}
 
 			if len(projectBuilds.Ids) == 0 {
-				records <- BuildRecord{
-					Project: *project,
-					Status:  ui.AppEmpty,
-					Start:   "",
-					Finish:  "",
-				}
+				records <- BuildRecord{Project: *project, Status: ui.AppEmpty, Start: "", Finish: ""}
 				return
 			}
 
 			builds, err := client.BatchGetBuilds(&codebuild.BatchGetBuildsInput{Ids: projectBuilds.Ids})
 			if err != nil {
-				records <- BuildRecord{
-					Project: *project,
-					Status:  ui.AppUnknown,
-					Start:   "",
-					Finish:  "",
-				}
+				records <- BuildRecord{Project: *project, Status: ui.AppUnknown, Start: "", Finish: ""}
 				return
 			}
 
@@ -110,20 +103,9 @@ func DisplayOverview(client client.API, opts OverviewOptions, w io.Writer) error
 				finish = build.EndTime.Format(ui.AppDateTimeFormat)
 			}
 
-			result := ""
-			if aws.StringValue(build.BuildStatus) == "FAILED" || aws.StringValue(build.BuildStatus) == "FAULT" {
-				result = ui.AppFailure
-			} else if aws.StringValue(build.BuildStatus) == "IN_PROGRESS" {
-				result = ui.AppProgress
-			} else if aws.StringValue(build.BuildStatus) == "STOPPED" || aws.StringValue(build.BuildStatus) == "TIMED_OUT" {
-				result = ui.AppStale
-			} else {
-				result = ui.AppSuccess
-			}
-
 			records <- BuildRecord{
 				Project: *project,
-				Status:  result,
+				Status:  getBuildIcon(build.BuildStatus),
 				Start:   start,
 				Finish:  finish,
 			}
@@ -149,10 +131,17 @@ func DisplayOverview(client client.API, opts OverviewOptions, w io.Writer) error
 	return nil
 }
 
-// BuildRecord gives us a struct to store records
-type BuildRecord struct {
-	Project string
-	Status  string
-	Start   string
-	Finish  string
+func getBuildIcon(status *string) string {
+	result := ""
+	if aws.StringValue(status) == "FAILED" || aws.StringValue(status) == "FAULT" {
+		result = ui.AppFailure
+	} else if aws.StringValue(status) == "IN_PROGRESS" {
+		result = ui.AppProgress
+	} else if aws.StringValue(status) == "STOPPED" || aws.StringValue(status) == "TIMED_OUT" {
+		result = ui.AppStale
+	} else {
+		result = ui.AppSuccess
+	}
+
+	return result
 }
