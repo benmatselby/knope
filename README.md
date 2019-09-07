@@ -1,6 +1,6 @@
 # Knope
 
-![](https://github.com/benmatselby/knope/workflows/Go/badge.svg)
+![GitHub Badge](https://github.com/benmatselby/knope/workflows/Go/badge.svg)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=knope&metric=alert_status)](https://sonarcloud.io/dashboard?id=knope)
 [![Go Report Card](https://goreportcard.com/badge/github.com/benmatselby/knope)](https://goreportcard.com/report/github.com/benmatselby/knope)
 
